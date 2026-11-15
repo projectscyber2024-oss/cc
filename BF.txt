@@ -1,0 +1,82 @@
+
+#include <stdio.h>
+#include <string.h>
+#include <openssl/evp.h>
+#include <openssl/provider.h>
+
+int main()
+{
+    char text[] = "hello world";
+    unsigned char key[] = "12345678";
+    unsigned char encrypted[100];
+
+    int len, encrypted_len;
+
+    OSSL_PROVIDER *default_provider;
+    OSSL_PROVIDER *legacy_provider;
+
+    default_provider = OSSL_PROVIDER_load(NULL, "default");
+    legacy_provider = OSSL_PROVIDER_load(NULL, "legacy");
+
+    if (default_provider == NULL || legacy_provider == NULL)
+    {
+        printf("Provider loading failed\n");
+        return 1;
+    }
+
+    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
+
+    if (ctx == NULL)
+    {
+        printf("Context creation failed\n");
+        return 1;
+    }
+
+    if (EVP_EncryptInit_ex(ctx, EVP_bf_ecb(), NULL, key, NULL) != 1)
+    {
+        printf("Encryption initialization failed\n");
+        return 1;
+    }
+
+    if (EVP_EncryptUpdate(ctx, encrypted, &len,
+        (unsigned char *)text, strlen(text)) != 1)
+    {
+        printf("Encryption failed\n");
+        return 1;
+    }
+
+    encrypted_len = len;
+
+    if (EVP_EncryptFinal_ex(ctx, encrypted + len, &len) != 1)
+    {
+        printf("Final encryption failed\n");
+        return 1;
+    }
+
+    encrypted_len += len;
+
+    printf("Encrypted text: ");
+
+    for (int i = 0; i < encrypted_len; i++)
+    {
+        printf("%02X", encrypted[i]);
+    }
+
+    printf("\n");
+
+    EVP_CIPHER_CTX_free(ctx);
+
+    OSSL_PROVIDER_unload(legacy_provider);
+    OSSL_PROVIDER_unload(default_provider);
+
+    return 0;
+}
+
+
+
+
+op 
+
+gcc blowfish.c -o blowfish -lcrypto
+
+./blowfish

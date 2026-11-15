@@ -1,0 +1,45 @@
+
+#include <stdio.h>
+
+long long power(long long a, long long b, long long p)
+{
+    long long result = 1;
+
+    while (b > 0)
+    {
+        result = (result * a) % p;
+        b--;
+    }
+
+    return result;
+}
+
+int main()
+{
+    long long p = 23;
+    long long g = 5;
+    long long a = 6;
+    long long b = 15;
+
+    long long A, B;
+    long long key1, key2;
+
+    A = power(g, a, p);
+    B = power(g, b, p);
+
+    key1 = power(B, a, p);
+    key2 = power(A, b, p);
+
+    printf("Public Key of Alice: %lld\n", A);
+    printf("Public Key of Bob: %lld\n", B);
+    printf("Shared Key of Alice: %lld\n", key1);
+    printf("Shared Key of Bob: %lld\n", key2);
+
+    return 0;
+}
+
+
+
+op 
+gcc dh.c -o dh
+./dh

@@ -1,0 +1,79 @@
+
+#include <stdio.h>
+#include <string.h>
+#include <openssl/des.h>
+
+int main()
+{
+    DES_cblock key = "12345678";
+    DES_key_schedule schedule;
+
+    char plaintext[100];
+    char encrypted[104];
+    char decrypted[104];
+
+    printf("Enter Plain Text: ");
+    fgets(plaintext, sizeof(plaintext), stdin);
+
+    int len = strlen(plaintext);
+
+    
+    if (len > 0 && plaintext[len - 1] == '\n')
+    {
+        plaintext[--len] = '\0';
+    }
+
+    
+    while (len % 8 != 0)
+    {
+        plaintext[len++] = ' ';
+    }
+
+    plaintext[len] = '\0';
+
+    
+    DES_set_key_unchecked(&key, &schedule);
+
+    // Encryption
+    for (int i = 0; i < len; i += 8)
+    {
+        DES_ecb_encrypt(
+            (DES_cblock *)(plaintext + i),
+            (DES_cblock *)(encrypted + i),
+            &schedule,
+            DES_ENCRYPT
+        );
+    }
+
+    printf("\nEncrypted Data (Hex):\n");
+
+    for (int i = 0; i < len; i++)
+    {
+        printf("%02X", (unsigned char)encrypted[i]);
+    }
+
+    
+    for (int i = 0; i < len; i += 8)
+    {
+        DES_ecb_encrypt(
+            (DES_cblock *)(encrypted + i),
+            (DES_cblock *)(decrypted + i),
+            &schedule,
+            DES_DECRYPT
+        );
+    }
+
+    decrypted[len] = '\0';
+
+    printf("\n\nDecrypted Text: %s\n", decrypted);
+
+    return 0;
+}
+
+
+
+op
+
+gcc des.c -o des -lcrypto
+
+./des

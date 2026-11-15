@@ -1,0 +1,73 @@
+
+#include <stdio.h>
+#include <string.h>
+#include <openssl/dsa.h>
+#include <openssl/sha.h>
+
+int main()
+{
+    DSA *dsa;
+    unsigned char message[] = "Hello world";
+    unsigned char hash[SHA256_DIGEST_LENGTH];
+    DSA_SIG *signature;
+
+    SHA256(message, strlen((char *)message), hash);
+
+    dsa = DSA_new();
+
+    if (dsa == NULL)
+    {
+        printf("DSA creation failed\n");
+        return 1;
+    }
+
+    if (DSA_generate_parameters_ex(dsa, 1024, NULL, 0,
+                                   NULL, NULL, NULL) != 1)
+    {
+        printf("Parameter generation failed\n");
+        DSA_free(dsa);
+        return 1;
+    }
+
+    if (DSA_generate_key(dsa) != 1)
+    {
+        printf("Key generation failed\n");
+        DSA_free(dsa);
+        return 1;
+    }
+
+    signature = DSA_do_sign(hash, SHA256_DIGEST_LENGTH, dsa);
+
+    if (signature == NULL)
+    {
+        printf("Digital Signature Generation Failed\n");
+        DSA_free(dsa);
+        return 1;
+    }
+
+    printf("Digital Signature Generated Successfully\n");
+
+    if (DSA_do_verify(hash, SHA256_DIGEST_LENGTH,
+                      signature, dsa) == 1)
+    {
+        printf("Signature Verified Successfully\n");
+    }
+    else
+    {
+        printf("Signature Verification Failed\n");
+    }
+
+    DSA_SIG_free(signature);
+    DSA_free(dsa);
+
+    return 0;
+}
+
+
+op 
+gcc digital.c -o digital -lcrypto 
+
+openssl 
+gcc -Wno-deprecated-declarations digital.c -o digital -lcrypto
+
+./digital
